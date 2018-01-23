@@ -64,4 +64,5 @@ Maps were built in carto, using the shape file from the <a href="https://www.jun
   <li>Map that show the distribution of population according to parameters of density of population and age.</li>
   <li>Map that show the borders of each health area and their names.</li>
   </ul> 
-Bar charts built in JS that allow the user filter by category and get the local information. 
+  
+Bar charts built in JS using <a href="https://canvasjs.com/javascript-charts/">CanvasJS</a> that allow the user filter by category and get the local information. 
