@@ -38,3 +38,30 @@ The data was downloaded from the <a href="https://www.msssi.gob.es/estadEstudios
    <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/frecuentacionAP.csv">CSV: General frequency by health area from Andalucía</a></li>
    <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/frecuentacionUrgenciaZonas.csv">CSV: Emergency frequency by health area from Andalucía</a></li>
   </ul>
+
+## See the analysis
+<ul>
+<li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/Primary%20Health%20AND.Rmd">R Notebook about the analysis regarding centres: </a>rate of people by centre, number of centres, number of centres by type, and ratio of population by A&E in non-hospital units. Ratios in provinces and health areas.</li>
+  
+<li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/Doctors%20and%20nurses.Rmd">R Notebook about the analysis regarding professional: </a>ratio of GP, paediatric, nurse and assistant administrative by population allocated. Number of professionals by type in 2009 and 2016 and change between those two years. Figures are calculated by provinces and health areas.</li>
+
+<li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/Frequency.Rmd">R Notebook about the analysis regarding frequency: </a>general and emergency frequency by provinces and health areas.</li>
+
+<li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/population.Rmd">R Notebook about population: </a>evolution of the allocated population and proportion of older group.</li>
+</ul>
+
+## Visualisation
+
+Column charts were made using <a href="https://flourish.studio/">Flourish.studio</a>. This type is used to show comparison about:
+<ul>
+  <li>Ratio of people by centres and number of centres in each province.</li>
+  <li>Ratio of people by type of professional and evolution between 2009 and 2016.</li>
+  <li>Number of professionals by type and percentage of change between 2009 and 2016.</li>
+  <li>Frequencies rates.</li>
+</ul>
+Maps were built in carto, using the shape file from the <a href="https://www.juntadeandalucia.es/institutodeestadisticaycartografia/DERA/g17.htm">nstituto de Estadística y Cartografía de Andalucía.</a>
+<ul>
+  <li>Map that show the distribution of population according to parameters of density of population and age.</li>
+  <li>Map that show the borders of each health area and their names.</li>
+  </ul> 
+Bar charts built in JS that allow the user filter by category and get the local information. 
