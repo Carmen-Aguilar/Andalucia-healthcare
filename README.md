@@ -29,4 +29,12 @@ The data was downloaded from the <a href="https://www.msssi.gob.es/estadEstudios
 <ul>
   <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/20171208_Centros_de_Atencion_Primaria.csv">CSV: Primary Healthcare Centres</a></li>
 <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/poblacionasignada.csv">CSV: Population allocated in Andalucía</a></li>
-</ul>
+  <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/dispositivosurgextrahospital.csv">CSV: A&E in non-hospital units in Andalucía</a></li>
+  <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/ratioprofesional%20provincia.csv">CSV: Ratios per professional in health areas from Andalucía</a></li>
+  <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/ratioprofesionalProvinciaSolo.csv">CSV: Ratios per professional in provinces from Andalucía/a></li>
+  <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/profesionalesAT.csv">CSV: Number of professionals per type by health area and province in Andalucía</a></li>
+  <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/frecuentacionAPtotalAND.csv">CSV: General frequency by province from Andalucía</a></li>
+  <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/freqUregenteProvinciasSolo.csv">CSV: Emergency frequency by province from Andalucía</a></li>
+   <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/frecuentacionAP.csv">CSV: General frequency by health area from Andalucía</a></li>
+   <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/frecuentacionUrgenciaZonas.csv">CSV: Emergency frequency by health area from Andalucía</a></li>
+  </ul>
