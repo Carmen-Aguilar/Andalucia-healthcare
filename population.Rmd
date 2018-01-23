@@ -1,0 +1,42 @@
+---
+title: "Population"
+output: html_notebook
+---
+
+# How old was the population in 2016
+
+<strong>PROVINCE</strong>
+
+```{r}
+names(pop2016)
+```
+```{r}
+colnames(pop2016)[6] <- "X"
+names(pop2016)
+```
+```{r}
+pop2016 %>% group_by(Provincia, Grupos) %>% select(Provincia, Grupos, Numero) %>% na.omit() %>% summarise(sum(Numero))
+```
+```{r}
+pop2016 %>% filter(Grupos == ">65 a\361os") %>% group_by(Provincia, Grupos) %>% select(Provincia, Grupos, Numero) %>% na.omit() %>% summarise(total = sum(Numero)) %>% mutate(variation = (total-79192)/79192) %>% arrange(variation)
+```
+
+<strong>??rea de Salud</strong>
+
+```{r}
+pop2016 %>% filter(Grupos == ">65 a\361os") %>% group_by(AreaSalud, Grupos) %>% select(AreaSalud, Grupos, Numero) %>% na.omit() %>% summarise(total = sum(Numero)) %>% arrange(total)
+```
+```{r}
+pop2016 %>% filter(Grupos == ">65 a\361os") %>% group_by(AreaSalud, Grupos) %>% select(AreaSalud, Grupos, Numero) %>% na.omit() %>% summarise(total = sum(Numero)) %>% mutate(variation = (total - 10535) / 10535) %>% arrange(variation)
+```
+
+
+```{r}
+pop2016 %>% group_by(AreaSalud) %>% select(AreaSalud, Grupos, Numero) %>% na.omit() %>% summarise(total = sum(Numero), total65 = sum(Numero[Grupos==">65 a\361os"])) %>% mutate(proportion = total65/total)
+```
+```{r}
+proportion65 <- pop2016 %>% group_by(AreaSalud) %>% select(AreaSalud, Grupos, Numero) %>% na.omit() %>% summarise(total = sum(Numero), total65 = sum(Numero[Grupos==">65 a\361os"])) %>% mutate(proportion = total65/total)
+write.csv(proportion65, "mayoresmapa.csv")
+```
+
+

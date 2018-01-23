@@ -1,0 +1,393 @@
+---
+title: "Primary Healthcare Andalucia"
+output: html_notebook
+---
+The purpose of this project is comparing the primary healthcare among the eight provinces in Andalucía, so as to verify if there are differences within the same region (Comunidad Autónoma - CA)
+
+According to a survey carried out by Deloitte, 85% of the health professional questioned considered that there are differences among centers within the same CA. 
+
+It can be only challenge, however, the primary healthcare sector, where the information is broken down by small areas. The data related to hospital is only collected by CA. 
+
+There are, then, three parameters to meassure the resources given to each area: The amount of healthcare centers, the quantity of sanitary professionals and the frequency. 
+
+# Healthcare centers
+
+## Centers
+
+First, I upload the file that contains all the healthcare centers in Spain and their basic areas. 
+
+```{r}
+centersAT <- read.csv("20171208_Centros_de_Atencion_Primaria.csv", sep = ",", stringsAsFactors = FALSE)
+View(centersAT)
+```
+
+I change the columns title I am interested in.
+
+```{r}
+names(centersAT) <- gsub("Zona.B..sica", "zona", names(centersAT))
+names(centersAT) <- gsub("Comunidad.Aut..noma", "CA", names(centersAT))
+names(centersAT) <- gsub("C..digo.Postal", "CP", names(centersAT))
+names(centersAT) <- gsub("X..rea.de.Salud", "AreaSalud", names(centersAT))
+names(centersAT) <- gsub("Modalidad.Gesti..n", "Modalidad Gestion", names(centersAT))
+names(centersAT) <- gsub("Dependencia.de.Gesti..n", "Dependencia", names(centersAT))
+View(centersAT)
+```
+
+Next I check if there is some rows wrong classed. For example, if I have other names than the 17 (plus Ceuta and Melilla) Spanish regions (Comunidades Autónomas) in that column. With table() I can see which names do not belong to that column type.
+
+```{r}
+table(centersAT$CA)
+```
+The names may cause problems in the future. I fix those that look weird, avoiding non common characters in English. 
+
+I could do it only for Andalucía, but, if I (or anyone) will need to use it again, we'll already have work done. 
+
+```{r}
+centersAT$CA[centersAT$CA == "ANDALUC\303\215A"] <- "ANDALUCIA"
+centersAT$CA[centersAT$CA == "CASTILLA Y LE\303\223N"] <- "CASTILLA Y LEON"
+centersAT$CA[centersAT$CA == "MURCIA (REGI\303\223N DE)"] <- "MURCIA"
+centersAT$CA[centersAT$CA == "ARAG\303\223N"] <- "ARAGON"
+centersAT$CA[centersAT$CA == "CATALU\303\221A"] <- "CATALUNYA"
+centersAT$CA[centersAT$CA == "PA\303\215S VASCO"] <- "PAIS VASCO"
+View(centersAT)
+```
+
+I am going now to create a subset only with Andalucía to clean the data that I am going to use. 
+
+```{r}
+atAND <- subset(centersAT, centersAT$CA == "ANDALUCIA")
+View(atAND)
+```
+
+I need now to repeat the same process with "provincias" (smaller division), "Area Salud" and "zona" (smaller subdivisions) and "Tipo de Centro", as these are the parameter I am going to use. 
+
+```{r}
+table(atAND$Provincia)
+```
+```{r}
+atAND$Provincia[atAND$Provincia == "ALMER\303\215A"] <- "ALMERIA"
+atAND$Provincia[atAND$Provincia == "M\303\201LAGA"] <- "MALAGA"
+atAND$Provincia[atAND$Provincia == "C\303\201DIZ"] <- "CADIZ"
+atAND$Provincia[atAND$Provincia == "C\303\223RDOBA"] <- "CORDOBA"
+atAND$Provincia[atAND$Provincia == "JA\303\211N"] <- "JAEN"
+View(atAND)
+```
+
+By using table(), it also counts the number of times that a value appears, which means how many centers there are in that area.
+
+However, there are two types of centers.
+```{r}
+table(atAND$Tipo.de.Centro)
+```
+With table(atAND$Area Salud), it prints how many centers by small territorial division. 
+```{r}
+table(atAND$`Area Salud`)
+```
+I identify that \303\ means accents, 201 = A, 211 = E, 232 = U, 223 = O, 215 = I, 221 = Ñ, 
+```{r}
+newlist <- atAND$`Area Salud`
+newlist <- gsub("\303\211","E",gsub("\303\201","A",gsub("\303\215","I", gsub("\303\223", "O", gsub("\303\232","U", gsub("\303\221","N", newlist))))))
+table(newlist)
+#Store the function to reuse later
+formulnames <- function(newlist) { gsub("\303\211","E",gsub("\303\201","A",gsub("\303\215","I", gsub("\303\223", "O", gsub("\303\232","U", gsub("\303\221","N", newlist))))))}
+atAND$areasaludlimpio <- newlist
+```
+
+By using table(atAND$Area Salud), it prints the numbers of centers per small area. I could keep this value to know which one has the largest number. However, I would prefer comparing ratio. For that purpose, I'm going to use another file with the population in each small area.
+
+But first, I make another basic table with only the information I am interested in.
+
+```{r}
+atBasic <- data.frame(atAND$Provincia, atAND$areasaludlimpio, atAND$Tipo.de.Centro)
+colnames(atBasic) <- c("Provincia", "AreaSalud", "Tipo")
+#Keeping only the names in the "Área Salud" column
+atBasic$AreaSalud <- gsub("^.*: ", "", atBasic$AreaSalud)
+atBasic
+```
+
+
+## Population
+
+I upload the file and make a subset only with the data from 2016 to compare with the information above. 
+
+```{r}
+population <- read.csv2("poblacionasignada.csv", stringsAsFactors = FALSE)
+pop2016 <- subset(population, population$A.o == "2016")
+colnames(pop2016) <- c("Ano", "Provincia", "AreaSalud", "Grupos", "Numero")
+```
+
+I clean again the names
+
+```{r}
+table(pop2016$Provincia)
+```
+```{r}
+pop2016$Provincia[pop2016$Provincia == "ALMER\315A"] <- "ALMERIA"
+pop2016$Provincia[pop2016$Provincia == "C\301DIZ"] <- "CADIZ"
+pop2016$Provincia[pop2016$Provincia == "C\323RDOBA"] <- "CORDOBA"
+pop2016$Provincia[pop2016$Provincia == "JA\311N"] <- "JAEN"
+pop2016$Provincia[pop2016$Provincia == "M\301LAGA"] <- "MALAGA"
+View(pop2016)
+```
+
+And I install the package "dplyr"
+
+```{r}
+install.packages("dplyr")
+library(dplyr)
+```
+
+I have too much detail. I am interested in the total population allocated in each small area. 
+
+```{r}
+pop2016 %>% group_by(AreaSalud) %>% summarise(Numero=sum(Numero))
+#I store it because I will need it later
+pop2016Total <- pop2016 %>% select(Provincia, AreaSalud, Numero) %>% group_by(AreaSalud) %>% summarise(Numero=sum(Numero))
+#Cleaning names
+formulnames(pop2016Total$AreaSalud)
+pop2016Total$AreaSalud
+```
+Some names need more cleaning
+```{r}
+pop2016Total$AreaSalud <- gsub("\341", "a", gsub("\363", "o", gsub("\355", "i", gsub("\351", "e", gsub("\361", "n", pop2016Total$AreaSalud)))))
+pop2016Total$AreaSalud <- toupper(pop2016Total$AreaSalud)
+pop2016Total$AreaSalud
+```
+
+## Counting
+
+<strong>The most and the least</strong>
+
+I group by Área Salud to know the quantity of centers (no matter the type) in each Área Salud. 
+
+```{r}
+atBasic %>% select(Provincia, AreaSalud, Tipo) %>% group_by(Provincia, AreaSalud) %>% summarise(Tipo = n()) %>% arrange(Tipo)
+#I will use it later to calculate the ratio
+centersTotal <- atBasic %>% select(Provincia, AreaSalud, Tipo) %>% group_by(Provincia, AreaSalud) %>% summarise(Tipo = n()) %>% arrange(Tipo)
+```
+```{r}
+centersTotal %>% select(AreaSalud, Tipo) %>% group_by(AreaSalud) %>% summarise(Total = sum(Tipo)) %>%  arrange(Total)
+```
+
+The top three is:
+- Metropolitano de Granada
+- A.G.S. Norte de Jaén
+- Almería
+
+And at the bottom:
+- Costa del sol
+- Córdoba and Condado - Campina
+- Valle del guadalhorce
+
+```{r}
+View(centersTotal)
+```
+
+
+<strong>By type</strong>
+I would like to know how many centers of each type are by area, because a "centro de salud" is bigger and with more resources than "consultorio local".
+
+```{r}
+atBasic %>% select(Provincia, AreaSalud, Tipo) %>% filter(Tipo == "CENTRO SALUD")  %>% group_by(AreaSalud) %>% summarise(Tipo = n()) %>% arrange(Tipo)
+
+```
+By "centro de salud", Sevilla and Málaga are at the top and A.G.S Norte de Málaga and A.G.S. Serranía de Málaga and A.G.S. Norte de Córdoba at the bottom. 
+
+Regarding "consultorio local", Metropolitano de Granada and A.G.S. Norte de Jaén are the top two and Sevilla and Granada at the bottom. 
+
+```{r}
+atBasic %>% select(Provincia, AreaSalud, Tipo) %>% filter(Tipo == "CONSULTORIO LOCAL")  %>% group_by(AreaSalud) %>% summarise(Tipo = n()) %>% arrange(Tipo)
+```
+```{r}
+#Filtering by province instead of by health area
+atBasic %>% select(Provincia, Tipo) %>% filter(Tipo == "CONSULTORIO LOCAL")  %>% group_by(Provincia) %>% summarise(Tipo = n()) %>% arrange(Tipo)
+#downloading to visualize
+write.csv(atBasic, file = "atBasic.csv")
+```
+```{r}
+atBasic %>% select(Provincia, Tipo) %>% filter(Tipo == "CENTRO SALUD")  %>% group_by(Provincia) %>% summarise(Tipo = n()) %>% arrange(Tipo)
+```
+
+
+## Comparing
+
+<strong>People by healthcare center</strong>
+
+To have the ratio, I would need to combine both table: centersTotal and pop2016Total. 
+
+I will first merge both by "AreaSalud", so I need to clean both table first, so as the names match. But, the first time I did it, I got a table with less rows than the original one. I checked again the spelling and did more cleaning. 
+
+```{r}
+centersTotal[order(centersTotal$AreaSalud),]
+```
+
+
+```{r}
+centersTotal[28,] 
+centersTotal[28,1] <- "HUELVA"
+centersTotal[28,2] <- "A.G.S. NORTE DE HUELVA"
+centersTotal[order(centersTotal$AreaSalud),]
+```
+
+```{r}
+centersTotal$AreaSalud <- gsub("-", " ", centersTotal$AreaSalud)
+centersTotal
+```
+```{r}
+centersTotal[25,1] <- "MALAGA"
+centersTotal[25,2] <- "A.G.S. ESTE DE MALAGA AXARQUIA"
+centersTotal[25,]
+```
+```{r}
+centersTotal
+```
+
+```{r}
+centersTotal[14,1] <- "CADIZ"
+centersTotal[14,2] <- "BAHIA DE CADIZ LA JANDA"
+centersTotal[14,]
+```
+
+```{r}
+centersTotal[11,1]<- "MALAGA"
+centersTotal[11,]
+```
+
+```{r}
+centersTotal[6,2] <- "CONDADO CAMPINA"
+centersTotal[6,]
+```
+
+
+```{r}
+pop2016Total[order(pop2016Total$AreaSalud),]
+```
+
+```{r}
+pop2016Total$AreaSalud <- gsub("-", " ", pop2016Total$AreaSalud)
+pop2016Total
+```
+
+```{r}
+pop2016Total[2,1] <- "A.G.S. ESTE DE MALAGA AXARQUIA"
+pop2016Total[2,]
+```
+
+```{r}
+pop2016Total[7,]
+```
+
+
+```{r}
+ratioAT <- merge(pop2016Total, centersTotal, "AreaSalud")
+ratioAT
+```
+
+
+```{r}
+centersTotal[order(centersTotal$AreaSalud),]
+```
+
+<strong>Calculating ratio</strong>
+I calculate ratio per "provincia"
+
+```{r}
+ratioATProv <- select(ratioAT, Numero, Provincia, Tipo) %>% group_by(Provincia) %>% summarise(Numero = sum(Numero), Tipo = sum(Tipo))
+ratioATProv
+```
+```{r}
+ratioATProv <- ratioATProv %>% mutate(ratio_centersProv = Numero / Tipo) %>% arrange(ratio_centersProv)
+ratioATProv
+```
+```{r}
+ratioATProv %>% summarise(mean(ratio_centersProv))
+```
+
+```{r}
+ratioATProv <- ratioATProv %>% mutate(differenceProv = (ratio_centersProv - mean(ratio_centersProv)) / mean(ratio_centersProv)) 
+ratioATProv
+#download to visualize later
+write.csv(ratioATProv, "ratioATProv.csv")
+```
+How big is the difference between the first and the last?
+
+```{r}
+(21402.116 - 2742.694)/2742.694
+```
+
+
+I want to calculate how many people by center in each area.
+```{r}
+ratioATArea <- select(ratioAT, AreaSalud, Numero, Tipo) %>% group_by(AreaSalud) %>% summarise(Numero = sum(Numero), Tipo = sum(Tipo))
+ratioATArea
+```
+
+```{r}
+ratioATArea <- ratioATArea %>% mutate(ratio_centers = Numero / Tipo) %>% arrange(ratio_centers)
+ratioATArea
+write.csv(ratioATArea, "ratioATArea.csv")
+```
+
+```{r}
+ratioATArea %>% summarise(mean(ratio_centers), median(ratio_centers), sd(ratio_centers))
+```
+
+The differences are quite prominent. In A.G.S. Norte de Huelva there are 1,132.7 people by center, while in Costa del Sol there are 19,999.4 people by center. 
+
+How much population are there in each area in relation to the first one?
+```{r}
+ratioATArea %>% mutate(difference = (ratio_centers - 1132.750)/1132.750) %>% arrange(ratio_centers)
+```
+The difference between the first and the last is 1665%, what means that each Healthcare center in Costa del Sol area has 16.6 more times people allocated than each center in the area A.G.S. Norte de Huelva. 
+
+And, how much population in relation to the mean?
+```{r}
+ratioATArea %>% mutate(difference = (ratio_centers - mean(ratio_centers))/mean(ratio_centers)) %>% arrange(ratio_centers)
+```
+
+## Emergency non in hospital
+
+There is a part of the emergency attendance which belongs to the Primary Healthcare. This activity is carried out in centers different from the hospitals. 
+
+This information is not separated by "Area de Salud", but "Provincias".
+
+```{r}
+emergency <- read.csv("dispositivosurgextrahospital.csv")
+emergency$Provincia <- formulnames(emergency$Provincia)
+```
+
+```{r}
+emergencyAND <- subset(emergency, emergency$Provincia == "GRANADA" | emergency$Provincia == "JAEN" | emergency$Provincia == "CORDOBA" | emergency$Provincia == "MALAGA" | emergency$Provincia == "ALMERIA" | emergency$Provincia == "CADIZ" | emergency$Provincia == "HUELVA" | emergency$Provincia == "SEVILLA")
+#This is the table I am going to use
+emergencyANDTotal <- emergencyAND %>% select(Provincia, Nombre) %>% group_by(Provincia) %>% summarise(Nombre = n()) %>% arrange(Nombre)
+emergencyANDTotal
+```
+Ratio usign population allocated in this "provincia"
+```{r}
+pop2016$Provincia <- formulnames(pop2016$Provincia)
+pop2016Provincia
+```
+```{r}
+pop2016Provincia <- pop2016 %>% select(Provincia, Numero) %>% group_by(Provincia) %>% summarise(Numero=sum(Numero, na.rm = TRUE))
+pop2016Provincia
+```
+
+```{r}
+ratioEmergency <- merge(pop2016Provincia, emergencyANDTotal, "Provincia")
+ratioEmergency <- ratioEmergency %>% mutate(ratio_emergency = Numero / Nombre) %>% arrange(ratio_emergency)
+ratioEmergency
+write.csv(ratioEmergency, "ratioER.csv")
+```
+
+```{r} 
+ratioEmergency %>% mutate(ratio_emergency = Numero / Nombre) %>% summarise(mean = mean(ratio_emergency), median = median(ratio_emergency), sd = sd(ratio_emergency))
+``` 
+```{r}
+ratioEmergency %>% mutate(difference = (ratio_emergency - 12525.61) / 12525.61) %>% arrange(difference)
+```
+How big the last related to the first?
+```{r}
+(33640.76 - 12525.61)/12525.61
+```
+
+

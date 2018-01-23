@@ -1,0 +1,337 @@
+---
+title: "Doctors and nurses"
+output: html_notebook
+---
+The second parameter to messure the primary healthcenters is the professionals. I have the database for Andalucía, but before analysing it, I need cleaning. 
+
+# Cleaning
+
+<strong>Área de Salud</strong>
+
+```{r}
+ratioProfesional <- read.csv2("ratioprofesional provincia.csv", stringsAsFactors = FALSE)
+colnames(ratioProfesional) <- c("Year", "Provincia", "AreaSalud", "Ratio_GP", "Ratio_Pediatric", "Ratio_Nurse", "Ratio_Aux", "X")
+ratioProfesional$X <- NULL
+ratioProfesional$Provincia <- formulnames(ratioProfesional$Provincia)
+table(ratioProfesional$Provincia)
+```
+The formule stored previously is not useful anymore. I create another one. 
+```{r}
+cleaninglist <- ratioProfesional$Provincia
+cleaninglist <- gsub("\315", "I", gsub("\301", "A", gsub("\323", "O", gsub("\311", "E", cleaninglist))))
+table(cleaninglist)
+ratioProfesional$Provincia <- cleaninglist
+table(ratioProfesional$Provincia)
+#Storing function
+formulnames2 <- function(cleaninglist) {gsub("\315", "I", gsub("\301", "A", gsub("\323", "O", gsub("\311", "E", cleaninglist))))}
+```
+
+```{r}
+table(ratioProfesional$AreaSalud)
+```
+```{r}
+ratioProfesional$AreaSalud <- toupper(ratioProfesional$AreaSalud)
+#The cleaning need is different from the two previous funcions
+newclean <- ratioProfesional$AreaSalud
+newclean <- gsub("\341", "A", gsub("\363", "O", gsub("\355", "I", gsub("\351", "E", gsub("\361", "N", newclean)))))
+ratioProfesional$AreaSalud <- newclean
+formulnames3 <- function(newclean) {gsub("\341", "A", gsub("\363", "O", gsub("\355", "I", gsub("\351", "E", gsub("\361", "N", newclean)))))}
+```
+
+<strong>Provincia</strong>
+
+```{r}
+ratioProv <- read.csv2("ratioprofesionalProvinciaSolo.csv", stringsAsFactors = FALSE)
+colnames(ratioProv) <- c("Year", "Provincia", "Ratio_Aux", "Ratio_Nurse", "Ratio_Paediat", "Ratio_GP", "X")
+ratioProv$X <- NULL
+ratioProv$Provincia <- formulnames2(ratioProv$Provincia)
+table(ratioProv$Provincia)
+```
+
+
+# Analysing
+
+
+```{r}
+summary(ratioProfesional)
+```
+```{r}
+summary(ratioProv)
+```
+
+As I have several years, I am going to compare, first, "provincias" and "Areas de Salud" in 2016, the most recent period and the one used when analysing the Healthcare centers. 
+
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_GP, Ratio_Pediatric, Ratio_Nurse, Ratio_Aux) %>% na.omit() %>% group_by(AreaSalud) %>% arrange(AreaSalud)
+
+#I need to get rid of NA. That means "AreaSalud" that existed in the past, but not in 2016, due to reorganisation process in the field. Once using na.omit, I get the 31 rows that matches with the Healthcare centers table.
+
+#Changing the arrange() value, I can order each value. 
+```
+```{r}
+ratioProv %>% filter(Year == "2016") %>% select(Provincia, Ratio_GP, Ratio_Paediat, Ratio_Nurse, Ratio_Aux) %>% na.omit() %>% group_by(Provincia) %>% arrange(Provincia)
+```
+
+## 2016 - Who the most and the least
+
+<strong>ÁREA DE SALUD</strong>
+
+GP, Nurses and pediatrics in the zone of Costa del Sol are the most busiest one in Andalucía. 
+
+GP in that area assist 74.6% more of population than in the region "AGS Nordeste de Granada", where each doctor has allocated 1038 people. 
+
+Regarding pediatrics, those from Costa del Sol assist 1.76 times more than the one from AGS Norte de Huelva, the area with the lowest rate. 
+
+And nurses in Costa del Sol assist 1.4 times more people than those from AGS Norte de Huelva. 
+
+AGS De Osuna has the highest rate in administrative assistants. These professionals have allocated almost twice the amount of people than Condado Campiña. 
+
+<strong>NOTE:</strong> After finishing the analysis, I talked to the Federación para la Defensa de la Sanidad Pública, and they gave to me the optimum rate by GP, nurse and paediatric. I will use it to know which area is over or under that figure. 
+
+<strong>GP</strong>
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_GP) %>% na.omit() %>% slice(which.max(Ratio_GP))
+```
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_GP) %>% na.omit() %>% slice(which.min(Ratio_GP))
+```
+
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_GP) %>% na.omit() %>% mutate(differenceGP = (Ratio_GP - 1038)/1038) %>% arrange(differenceGP)
+```
+Advisable rate: 1.500 people by GP. 
+Which areas are over and which under and how big is the difference?
+
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_GP) %>% na.omit() %>% mutate(differenceGP = (Ratio_GP - 1500)/1500) %>% arrange(differenceGP)
+```
+10 out of 31 (almost one out of three) are over the advisable rate 
+
+<strong>Paediatric</strong>
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_Pediatric) %>% na.omit() %>% slice(which.max(Ratio_Pediatric))
+```
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_Pediatric) %>% na.omit() %>% slice(which.min(Ratio_Pediatric))
+```
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_Pediatric) %>% na.omit() %>% mutate(differencePediatric = (Ratio_Pediatric - 511)/511) %>% arrange(differencePediatric)
+```
+Advisable rate: 1.200 people by GP. 
+Which areas are over and which under and how big is the difference?
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_Pediatric) %>% na.omit() %>% mutate(differencePediatric = (Ratio_Pediatric - 1200)/1200) %>% arrange(differencePediatric)
+```
+5 out of 31 don't meet the rate = one out of six.
+
+<strong>Nurse</strong>
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_Nurse) %>% na.omit() %>% slice(which.max(Ratio_Nurse))
+```
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_Nurse) %>% na.omit() %>% slice(which.min(Ratio_Nurse))
+```
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_Nurse) %>% na.omit() %>% mutate(differenceNurse = (Ratio_Nurse - 1062)/1062) %>% arrange(differenceNurse)
+```
+
+Advisable rate: 1.500 people by GP. 
+Which areas are over and which under and how big is the difference?
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_Nurse) %>% na.omit() %>% mutate(differenceNurse = (Ratio_Nurse - 1500)/1500) %>% arrange(differenceNurse)
+```
+22 out of 31 areas have more people than the advisable rate = (almost) 11 out of 15. 
+
+<strong>Administrative Assistance</strong>
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_Aux) %>% na.omit() %>% slice(which.max(Ratio_Aux))
+```
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_Aux) %>% na.omit() %>% slice(which.min(Ratio_Aux))
+```
+```{r}
+ratioProfesional %>% filter(Year == "2016") %>% select(AreaSalud, Ratio_Aux) %>% na.omit() %>% mutate(differenceAux = (Ratio_Aux - 1941)/1941) %>% arrange(differenceAux)
+```
+
+<strong>PROVINCES</strong>
+```{r}
+ratioProv %>% filter(Year == "2016") %>% select(Provincia, Ratio_GP, Ratio_Paediat, Ratio_Nurse, Ratio_Aux) %>% na.omit() %>% group_by(Provincia) %>% mutate(diff_GP = (Ratio_GP - 1286)/1286, diff_Paediat = (Ratio_Paediat - 869)/869, diff_Nurse = (Ratio_Nurse - 1449)/1449, diff_Aux = (Ratio_Aux - 2550)/2550)
+```
+The pressure in GP from Cádiz is 27.8% higher than in Huelva. Each pediatric, nurse and administrative assistant from Málaga assist 34.6%, 40.5% and 22.4%, respectively, more population than those from Jaén.
+
+```{r}
+ratioProv %>% filter(Year == "2016") %>% select(Provincia, Ratio_GP, Ratio_Paediat, Ratio_Nurse, Ratio_Aux) %>% na.omit() %>% group_by(Provincia) %>% mutate(GP = (Ratio_GP - 1500)/1500, Paediat = (Ratio_Paediat - 1200)/1200, Nurse = (Ratio_Nurse - 1500)/1500)
+```
+
+
+## 2009 - 2016 Evolution
+I want now to check if there has been changes in the rates since 2009.
+
+*There are some areas that cannot be compared between 2009 and 2016, because they were created after 2009 or they disappeared before 2016. 
+
+<strong>ÁREAS DE SALUD</strong>
+
+<strong>GP</strong>
+
+```{r}
+ratioProfesional %>% select(Year, AreaSalud, Ratio_GP) %>% group_by(AreaSalud) %>% na.omit %>% mutate(diff = c(NA, diff(Ratio_GP))) %>% arrange(AreaSalud)
+```
+
+
+```{r}
+ratioProfesional %>% select(Year, AreaSalud, Ratio_GP) %>% filter (Year == "2009" | Year == "2016") %>% group_by(AreaSalud) %>% na.omit() %>% mutate(diff = c(NA, diff(Ratio_GP))) %>% mutate(change = diff / lag(Ratio_GP)) %>% arrange(AreaSalud)
+#NA value in "mutate" means that this is the first value, and there is nothing else to compare with.
+```
+
+GPs in the AGS Norte de Córdoba zone have improved their condition in the last seven years. They have less population allocated, while GPs in Condado Campiña has increased the population treated by each one in 4.7%. 
+
+<strong>Pediatrics</strong>
+
+```{r}
+ratioProfesional %>% select(Year, AreaSalud, Ratio_Pediatric) %>% group_by(AreaSalud) %>% na.omit %>% mutate(diff = c(NA, diff(Ratio_Pediatric))) %>% arrange(AreaSalud)
+```
+```{r}
+ratioProfesional %>% select(Year, AreaSalud, Ratio_Pediatric) %>% filter (Year == "2009" | Year == "2016") %>% group_by(AreaSalud) %>% na.omit() %>% mutate(diff = c(NA, diff(Ratio_Pediatric))) %>% mutate(change = diff / lag(Ratio_Pediatric)) %>% arrange(AreaSalud)
+```
+
+Pediatrics in Poniente de Almería has 14% less population allocated in 2016 than in 2009, while these doctors in AGS Norte de Huelva assist 6% more of population than seven years ago. It should be pointed out that only one out of six areas has increased the population allocated by pediatrics. 
+
+<strong>Nurses</strong>
+
+```{r}
+ratioProfesional %>% select(Year, AreaSalud, Ratio_Nurse) %>% group_by(AreaSalud) %>% na.omit %>% mutate(diff = c(NA, diff(Ratio_Nurse))) %>% arrange(AreaSalud)
+```
+```{r}
+ratioProfesional %>% select(Year, AreaSalud, Ratio_Nurse) %>% filter (Year == "2009" | Year == "2016") %>% group_by(AreaSalud) %>% na.omit() %>% mutate(diff = c(NA, diff(Ratio_Nurse))) %>% mutate(change = diff / lag(Ratio_Nurse)) %>% arrange(AreaSalud)
+```
+Nurses in AGS Este de Málaga - Axarquía assist 20% less people than in 2009, while in the pressure in Córdoba has increased 8%.
+
+As it happened in the previous table, almost all of the "Area de Salud" has lost population. 
+
+<strong>Administrative assistants</strong>
+```{r}
+ratioProfesional %>% select(Year, AreaSalud, Ratio_Aux) %>% group_by(AreaSalud) %>% na.omit %>% mutate(diff = c(NA, diff(Ratio_Aux))) %>% arrange(AreaSalud)
+```
+```{r}
+ratioProfesional %>% select(Year, AreaSalud, Ratio_Aux) %>% filter (Year == "2009" | Year == "2016") %>% group_by(AreaSalud) %>% na.omit() %>% mutate(diff = c(NA, diff(Ratio_Aux))) %>% mutate(change = diff / lag(Ratio_Aux)) %>% arrange(AreaSalud)
+```
+In that rate, Jaén is the place where the population allocated by each non sanitary staff has increased the most, 47% in the last seven years. Poniente de Almería, however, has decreased 23.5%. 
+
+On the contrary to the two previous rates, the pressure in the administrative assistants has increased in the vast majority of the Area de Salud. 
+
+<strong>PROVINCES</strong>
+
+```{r}
+ratioProv %>% select(Year, Provincia, Ratio_GP, Ratio_Paediat, Ratio_Nurse, Ratio_Aux) %>% group_by(Provincia) %>% na.omit %>% mutate(diff_GP = c(NA, diff(Ratio_GP)), diff_Ped = c(NA, diff(Ratio_Paediat)), diff_Nurse = c(NA, diff(Ratio_Nurse)), diff_Aux = c(NA, diff(Ratio_Aux))) %>% arrange(Provincia)
+```
+<strong>GP</strong>
+Who has lost/won population by GP and how big has been the increase/decrease in the last seven years?
+```{r}
+ratioProv %>% select(Year, Provincia, Ratio_GP) %>% filter (Year == "2009" | Year == "2016") %>% group_by(Provincia) %>% na.omit() %>% mutate(diff = c(NA, diff(Ratio_GP))) %>% mutate(change = diff / lag(Ratio_GP)) %>% arrange(Provincia)
+```
+<strong>Pediatric</strong>
+Who has lost/won population by Pediatric and how big has been the increase/decrease in the last seven years?
+```{r}
+ratioProv %>% select(Year, Provincia, Ratio_Paediat) %>% filter (Year == "2009" | Year == "2016") %>% group_by(Provincia) %>% na.omit() %>% mutate(diff = c(NA, diff(Ratio_Paediat))) %>% mutate(change = diff / lag(Ratio_Paediat)) %>% arrange(Provincia)
+```
+<strong>Nurse</strong>
+Who has lost/won population by Pediatric and how big has been the increase/decrease in the last seven years?
+```{r}
+ratioProv %>% select(Year, Provincia, Ratio_Nurse) %>% filter (Year == "2009" | Year == "2016") %>% group_by(Provincia) %>% na.omit() %>% mutate(diff = c(NA, diff(Ratio_Nurse))) %>% mutate(change = diff / lag(Ratio_Nurse)) %>% arrange(Provincia)
+```
+<strong>Administrative assistant</strong>
+Who has lost/won population by Pediatric and how big has been the increase/decrease in the last seven years?
+```{r}
+ratioProv %>% select(Year, Provincia, Ratio_Aux) %>% filter (Year == "2009" | Year == "2016") %>% group_by(Provincia) %>% na.omit() %>% mutate(diff = c(NA, diff(Ratio_Aux))) %>% mutate(change = diff / lag(Ratio_Aux)) %>% arrange(Provincia)
+```
+
+## QUANTITY
+
+The next document shows the amount of GP, Pediatrics, Nurses and non medical staff by AreaSalud and provinces in the last seven years. 
+
+I want to check if there has been a decrease or increase in the number of sanitary professionals in this period. 
+
+```{r}
+staff <- read.csv2("profesionalesAT.csv", stringsAsFactors = FALSE)
+colnames(staff) <- c("Year", "Provincia", "AreaSalud", "Type_Doctor", "Number_Prof", "X")
+staff$X <- NULL
+staff$Provincia <- formulnames2(staff$Provincia)
+staff$AreaSalud <- formulnames3(staff$AreaSalud)
+```
+
+```{r}
+staff$Type_Doctor <- formulnames3(staff$Type_Doctor)
+table(staff$Type_Doctor)
+```
+
+<strong>PROVINCIA</strong>
+
+```{r}
+staffProv <- staff %>% select(Year, Provincia, Type_Doctor, Number_Prof) %>% group_by(Year, Provincia) %>% na.omit() %>% summarise(Total_GP = sum(Number_Prof[Type_Doctor == "Medicina de familia"]), Total_Pediat = sum(Number_Prof[Type_Doctor == "PediatrIa"]), Total_Nurse = sum(Number_Prof[Type_Doctor == "EnfermerIa"]), Total_Aux = sum(Number_Prof[Type_Doctor == "Personal no sanitario"])) %>% arrange(Provincia)
+#I store the result to work with it later
+staffProv
+```
+```{r}
+staffProv %>% filter (Year == "2009" | Year == "2016") %>% group_by(Provincia) %>% na.omit() %>% mutate(diff_GP = c(NA, diff(Total_GP)), diff_Pediat = c(NA, diff(Total_Pediat)), diff_Nurse = c(NA, diff(Total_Nurse)), diff_Aux = c(NA, diff(Total_Aux))) %>% mutate(change_GP = diff_GP / lag(Total_GP), change_Pediat = diff_Pediat / lag(Total_Pediat), change_Nurse = diff_Nurse / lag(Total_Nurse), change_Aux = diff_Aux / lag(Total_Aux)) %>% arrange(Provincia)
+```
+Almería is the province where the staff in the primary health care improved the most in the last seven years. Pediatrics and nurses increased 10%, while the rise in other provinces didn't exceed 1%. The growth in GP was 2.5% and non sanitary staff climbed 18%. 
+
+On the contrary, Granada lost in non sanitary staff 12% of the workers; Cádiz was the only provinces whose GP number decreased (0.6%) and the one that had the lowest increase in nurse in the last seven years (2.5%). Jaén was the only one in losing pediatrics (0.2%).
+
+```{r}
+#Download to visualize
+staffProvViz <- staffProv %>% filter (Year == "2009" | Year == "2016") %>% group_by(Provincia) %>% na.omit() %>% mutate(diff_GP = c(NA, diff(Total_GP)), diff_Pediat = c(NA, diff(Total_Pediat)), diff_Nurse = c(NA, diff(Total_Nurse)), diff_Aux = c(NA, diff(Total_Aux))) %>% mutate(change_GP = diff_GP / lag(Total_GP), change_Pediat = diff_Pediat / lag(Total_Pediat), change_Nurse = diff_Nurse / lag(Total_Nurse), change_Aux = diff_Aux / lag(Total_Aux)) %>% arrange(Provincia)
+write.csv(staffProvViz, "staffProvViz.csv")
+```
+
+
+Is the increase or decrease <strong>related to an increase or decrease of the designated population</strong>?
+```{r}
+#Prepare the subset from 2009 to compare with 2016
+pop2009 <- subset(population, population$A.o == "2009")
+colnames(pop2009) <- c("Year", "Provincia", "AreaSalud", "Grupos", "Number", "X")
+pop2009$X <- NULL
+pop2009$Provincia <- formulnames2(pop2009$Provincia)
+pop2009$AreaSalud <- formulnames3(pop2009$AreaSalud)
+```
+
+
+```{r}
+Pop09Prov <- pop2009 %>% select(Year, Provincia, Number) %>% group_by(Provincia) %>% na.omit() %>% summarise(Total_pop = sum(Number))
+#New table to compare
+Pop09_16Prov <- merge(pop2016Provincia, Pop09Prov, "Provincia")
+colnames(Pop09_16Prov) <- c("Provincia", "2016pop", "2009pop")
+Pop09_16Prov$difference <- ((Pop09_16Prov$`2016pop` - Pop09_16Prov$`2009pop`)/Pop09_16Prov$`2009pop`)
+Pop09_16Prov %>% arrange(difference)
+```
+
+
+<strong>ÁREA DE SALUD</strong>
+
+```{r}
+staffAreaSalud <- staff %>% select(Year, Provincia, AreaSalud, Type_Doctor, Number_Prof) %>% na.omit() %>% group_by(Year, AreaSalud) %>% summarise(GP = sum(Number_Prof[Type_Doctor == "Medicina de familia"]), Pediat = sum(Number_Prof[Type_Doctor == "PediatrIa"]), Nurse = sum(Number_Prof[Type_Doctor == "EnfermerIa"]), Aux = sum(Number_Prof[Type_Doctor == "Personal no sanitario"])) %>% arrange(GP)
+
+staffAreaSalud
+
+#Changing the value of arrange() I can order by other variable.
+```
+```{r}
+staffAreaSalud %>% filter (Year == "2009" | Year == "2016") %>% group_by(AreaSalud) %>% na.omit() %>% mutate(diff_GP = c(NA, diff(GP)), diff_Pediat = c(NA, diff(Pediat)), diff_Nurse = c(NA, diff(Nurse)), diff_Aux = c(NA, diff(Aux))) %>% mutate(change_GP = diff_GP / lag(GP), change_Pediat = diff_Pediat / lag(Pediat), change_Nurse = diff_Nurse / lag(Nurse), change_Aux = diff_Aux / lag(Aux)) %>% arrange(change_Aux)
+```
+GP
+Costa del Sol has had the highest rise between 2009 and 2016, 6.2%, while AGS Serranía de Málaga, AGS Norte de Málaga, Condado Campiña, AGS Sur de Granada, and AGS de Osuna are in 2016 in the same situation than 2016. 
+
+Pediatrics
+Poniente de Almería got the biggest increase (19,3%), while Jaén in 2016 has 3.2% less pediatrics than in 2009. 
+
+Nurse
+AGS Este de Málaga had the biggest rise since 2009 (11%), while Córdoba the biggest drop (-7.5%).
+
+Administrative assistant
+The amount of workers in 2016 in AGS Norte de Almería was 43.7% bigger than in 2009. AGS Serranía de Málaga dropped 25.4%. 
+
+```{r}
+staffAreaSaludViz <- staffAreaSalud %>% filter (Year == "2009" | Year == "2016") %>% group_by(AreaSalud) %>% na.omit() %>% mutate(diff_GP = c(NA, diff(GP)), diff_Pediat = c(NA, diff(Pediat)), diff_Nurse = c(NA, diff(Nurse)), diff_Aux = c(NA, diff(Aux))) %>% mutate(change_GP = diff_GP / lag(GP), change_Pediat = diff_Pediat / lag(Pediat), change_Nurse = diff_Nurse / lag(Nurse), change_Aux = diff_Aux / lag(Aux)) %>% arrange(change_Aux)
+write.csv(staffAreaSaludViz, "staffAreaSaludViz.csv")
+```
+

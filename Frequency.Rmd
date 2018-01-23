@@ -1,0 +1,130 @@
+---
+title: "Frequency"
+output: html_notebook
+---
+
+The third parameter to meassure the primary healthcare system is the frequency. 
+
+# Cleaning
+
+```{r}
+freqProv <- read.csv2("frecuentacionAPtotalAND.csv", stringsAsFactors = FALSE)
+colnames(freqProv) <- c("Year", "Provincia", "General_Freq", "X")
+freqProv$X <- NULL
+freqProv$Provincia <- formulnames2(freqProv$Provincia)
+freqProv$Provincia
+```
+```{r}
+freqAreaSalud <- read.csv2("frecuentacionAP.csv", stringsAsFactors = FALSE)
+colnames(freqAreaSalud) <- c("Year", "Provincia", "AreaSalud", "Consultas", "Individuos", "General_Freq", "X")
+freqAreaSalud$X <- NULL
+freqAreaSalud$Provincia <- formulnames2(freqAreaSalud$Provincia)
+freqAreaSalud$AreaSalud <- formulnames3(freqAreaSalud$AreaSalud)
+```
+
+
+# Analysing
+
+## General frequency
+
+Number of medical appointments / population allocated in each area
+
+<strong>PROVINCES</strong>
+
+```{r}
+freqProv %>% filter(Year == "2016") %>% arrange(General_Freq)
+```
+People from Jaén go more times per year to the healthcare center than people from the other provinces.
+
+```{r}
+freqProv %>% filter(Year == "2009" | Year == "2016") %>% group_by(Provincia) %>% mutate(diff = c(NA, diff(General_Freq))) %>% arrange(Provincia) 
+```
+The frequency fell in all the provinces between 2009 and 2016, although the drop varies from 1.74 point in Granada to 0.24 in Málaga.
+
+<strong>Áreas de Salud</strong>
+
+```{r}
+freqAreaSalud %>% filter(Year == "2016") %>% select(Provincia, AreaSalud, General_Freq) %>% na.omit() %>% group_by(Provincia) %>% mutate(diff = General_Freq - 4.43) %>% arrange(diff)
+```
+People allocated to AGS Nordeste de Granada area went 7.5 times to the healthcare center in 2016; 3.1 times more than the people in Costa del Sol, which had the lowest rate.
+```{r}
+freqAreaSalud  %>% filter(Year == "2009" | Year == "2016") %>% select(Year, AreaSalud, General_Freq) %>% na.omit() %>% group_by(AreaSalud) %>% mutate(diff = c(NA, diff(General_Freq))) %>% arrange(AreaSalud)
+```
+Málaga (Área de Salud) is the only area where the frequency has increased between 2009 and 2016. The biggest drop took place in Sevilla norte (-4.46 points)
+
+## Frequency by user
+
+There is information about the number of people that went to the healthcare center since 2013. Combining this figure with the total of medical appointment, I can calculate the frequency by those who actually went to the doctor within the year. 
+
+Number of medical appointment / Number of different people that went to the doctor 
+
+<strong>PROVINCES</strong>
+
+```{r}
+freqAreaSalud_User <- freqAreaSalud %>% filter(Year == "2013" | Year == "2014" | Year == "2015" | Year == "2016") %>% select(Year, Provincia, Consultas, Individuos) %>% group_by(Year, Provincia) %>% na.omit() %>% summarise(Total_Consultas = sum(Consultas), Total_Individuos = sum(Individuos)) %>% mutate(Freq_User = Total_Consultas / Total_Individuos)
+freqAreaSalud_User
+```
+```{r}
+freqAreaSalud_User %>% filter(Year == "2016") %>% select(Provincia, Freq_User) %>% arrange(Freq_User)
+```
+```{r}
+freqAreaSalud_User %>% filter(Year == "2013" | Year == "2016") %>% select(Year, Provincia, Freq_User) %>% na.omit() %>% group_by(Provincia) %>% mutate(diff = c(NA, diff(Freq_User))) %>% arrange(Provincia)
+```
+
+<strong>ÁREAS DE SALUD</strong>
+
+```{r}
+freqAreaSalud_UserAS <- freqAreaSalud %>% filter(Year == "2013" | Year == "2014" | Year == "2015" | Year == "2016") %>% select(Year, AreaSalud, Consultas, Individuos) %>% group_by(Year, AreaSalud) %>% na.omit() %>% summarise(Total_Consultas = sum(Consultas), Total_Individuos = sum(Individuos)) %>% mutate(Freq_User = Total_Consultas / Total_Individuos)
+
+freqAreaSalud_UserAS
+```
+```{r}
+freqAreaSalud_UserAS %>% filter(Year == "2013" | Year == "2016") %>% select(Year, AreaSalud, Freq_User) %>% na.omit() %>% group_by(AreaSalud) %>% mutate(diff = c(NA, diff(Freq_User))) %>% arrange(AreaSalud)
+```
+
+## Frequency in emergency
+
+<strong>PROVINCES</strong>
+
+```{r}
+freqER_prov <- read.csv2("freqUregenteProvinciasSolo.csv", stringsAsFactors = FALSE)
+colnames(freqER_prov) <- c("Year", "Provincia", "Urgencias", "Freq_ER", "X")
+freqER_prov$X <- NULL
+freqER_prov$Provincia <- formulnames2(freqER_prov$Provincia)
+```
+
+```{r}
+freqER_prov %>% filter(Year == "2016") %>% select(Provincia, Freq_ER) %>% group_by(Provincia) %>% arrange(Freq_ER)
+```
+
+There was a difference of 0.64 points in the emergency frequency between Málaga (the lowest rate) and Huelva (the highest) in 2016.
+
+```{r}
+freqER_prov %>% select(Year, Provincia, Freq_ER) %>% group_by(Provincia) %>% arrange(Provincia)
+```
+```{r}
+freqER_prov %>% select(Year, Provincia, Freq_ER) %>% filter(Year == "2012" | Year == "2016") %>%  group_by(Provincia) %>% mutate(diff = c(NA, diff(Freq_ER))) %>% arrange(Provincia)
+```
+In all the provinces the frequency in emergency rose between 2012 and 2016. The biggest increase occurred in Huelva. 
+
+<strong>Áreas de Salud</strong>
+
+```{r}
+freqER <- read.csv2("frecuentacionUrgenciaZonas.csv", stringsAsFactors = FALSE)
+colnames(freqER) <- c("Year", "Provincia", "AreaSalud", "Freq", "X")
+freqER$X <- NULL
+freqER$Provincia <- formulnames2(freqER$Provincia)
+freqER$AreaSalud <- formulnames3(freqER$AreaSalud)
+```
+
+```{r}
+freqER %>% filter(Year == "2016") %>% select(AreaSalud, Freq) %>% group_by(AreaSalud) %>% na.omit() %>% arrange(Freq) %>% mutate(diff = Freq - 0.16)
+```
+
+```{r}
+freqER %>% select(Year, AreaSalud, Freq) %>% group_by(AreaSalud) %>% na.omit() %>% arrange(AreaSalud)
+```
+```{r}
+freqER %>% filter(Year == "2012" | Year == "2016") %>% select(Year, AreaSalud, Freq) %>% group_by(AreaSalud) %>% na.omit() %>% arrange(AreaSalud) %>% mutate(diff = c(NA, diff(Freq)))
+```
+The frequency in emergency departments outside hospitals rose in all the Áreas de Salud between 2012 and 2016, except in Aljarafe, Jaén Sur, and Valle del Guadalhorce, where it happened small drops. 
