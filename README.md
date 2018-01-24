@@ -37,6 +37,8 @@ The data was downloaded from the <a href="https://www.msssi.gob.es/estadEstudios
   <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/freqUregenteProvinciasSolo.csv">CSV: Emergency frequency by province from Andalucía</a></li>
    <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/frecuentacionAP.csv">CSV: General frequency by health area from Andalucía</a></li>
    <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/frecuentacionUrgenciaZonas.csv">CSV: Emergency frequency by health area from Andalucía</a></li>
+  <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/poblacionmayor.xlsx">XLSX: Population by age in Andalucía by town.</a></li>
+  <li><a href="https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/densidad%20poblacio%CC%81nFinal.xlsx">XLSX: Population density in Andalucía by town.</a></li>
   </ul>
 
 ## See the analysis
@@ -52,17 +54,17 @@ The data was downloaded from the <a href="https://www.msssi.gob.es/estadEstudios
 
 ## Visualisation
 
-Column charts were made using <a href="https://flourish.studio/">Flourish.studio</a>. This type is used to show comparison about:
+<strong>Column charts</strong> were made using <a href="https://flourish.studio/">Flourish.studio</a>. This type is used to show comparison about:
 <ul>
   <li>Ratio of people by centres and number of centres in each province.</li>
   <li>Ratio of people by type of professional and evolution between 2009 and 2016.</li>
   <li>Number of professionals by type and percentage of change between 2009 and 2016.</li>
   <li>Frequencies rates.</li>
 </ul>
-Maps were built in carto, using the shape file from the <a href="https://www.juntadeandalucia.es/institutodeestadisticaycartografia/DERA/g17.htm">nstituto de Estadística y Cartografía de Andalucía.</a>
+<strong>Maps</strong> were built in Carto, using the shape file from the <a href="https://www.juntadeandalucia.es/institutodeestadisticaycartografia/DERA/g17.htm">nstituto de Estadística y Cartografía de Andalucía.</a>
 <ul>
   <li>Map that show the distribution of population according to parameters of density of population and age.</li>
   <li>Map that show the borders of each health area and their names.</li>
   </ul> 
   
-Bar charts built in JS using <a href="https://canvasjs.com/javascript-charts/">CanvasJS</a> that allow the user filter by category and get the local information. 
+<stron>Bar charts built in JS</strong> using <a href="https://canvasjs.com/javascript-charts/">CanvasJS</a> that allow the user filter by category and get the local information. 
