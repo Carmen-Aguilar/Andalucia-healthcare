@@ -1,5 +1,5 @@
 # Inequality in the primary healthcare from Andalucía
-Fact-check: Are there differences in the health service among provinces? LINK
+Fact-check: Are there differences in the health service among provinces? https://carmen-aguilar.github.io/health-inequality-andalucia/
 By Carmen Aguilar
 
 ![Ratio: population per centres](https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/ratioCentres.png)
@@ -16,7 +16,7 @@ By Carmen Aguilar
 
 ![Map: find your health area](https://github.com/Carmen-Aguilar/Andalucia-healthcare/blob/master/HealthAreas.png)
 
-In January 2018 I published a fact-check story that proved the differences in resources in the primary healthcare service within Andalucía. This was a project carried out for the MA Data Journalism at Birmingham City University. 
+In January 2018 I published <a href="https://carmen-aguilar.github.io/health-inequality-andalucia/" target="_blank">a fact-check story that proved the differences in resources in the primary healthcare service within Andalucía</a>. This was a project carried out for the MA Data Journalism at Birmingham City University. 
 
 The graphics above are some of the charts published in "Fact-check: Are there differences in the health service among provinces?", as a result of the analysis. 
 
